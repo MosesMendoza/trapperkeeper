@@ -157,7 +157,20 @@ To mark a dependency as optional, you use a different form to specify your depen
 
 In the above example, we use a map of the form `{:required [...] :optional [...]}` to split up our required and optional dependencies. When we run this service in TK, our code will call `(get-sonnet)` if an implementation of `SonnetService` has been included in the `bootstrap.cfg`. Otherwise, we'll return the placeholder string `"insert moving sonnet here"`.
 
-**Warning** Because of a [limitation](https://github.com/plumatic/plumbing/issues/114) in Plumatic Schema, you can't use the destructuring `[:SonnetService get-sonnet]` syntax when declaring optional dependencies.
+**Warning** Because of a [limitation](https://github.com/plumatic/plumbing/issues/114) in Plumatic Schema, you can't use the destructuring `[:SonnetService get-sonnet]` syntax when declaring optional dependencies. You can, however, still use this form for expressing required dependencies alongside optional ones:
+
+```clj
+(defservice poetry-service
+  PoetryService
+  {:required [[:HaikuService get-haiku]]
+   :optional [SonnetService]}
+  (haiku [this]
+    (println "a lovely haiku is" (get-haiku)))
+  (sonnet [this]
+    (if-let [sonnet-svc (tk-svc/maybe-get-service this :SonnetService)]
+      (get-sonnet sonnet-svc)
+      "insert moving sonnet here"))
+```
 
 The `Service` protocol has two helpers to make it easier to work with optional dependencies:
 
